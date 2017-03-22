@@ -17,57 +17,139 @@ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 ### Load and Clean the Data
 
 #### read the data from the downloaded csv files into data frames, ensuring invalid or blank fields are conveted to NA
-trainData <- read.csv("pml-training.csv", na.strings = c("NA", "#DIV/0!", ""))
-testData <- read.csv("pml-testing.csv", na.strings = c("NA", "#DIV/0!", ""))
+<!-- -->
+    trainData <- read.csv("pml-training.csv", na.strings = c("NA", "#DIV/0!", ""))
+    testData <- read.csv("pml-testing.csv", na.strings = c("NA", "#DIV/0!", ""))
 
 #### Ascertain the column names and structure of the data
-names(trainData)
-str(trainData)
+<!-- -->
+    names(trainData)
+    str(trainData)
 
 #### check distinct values for the "classe" column
-table(trainData$classe)
+<!-- -->
+    table(trainData$classe)
+       A    B    C    D    E 
+    5580 3797 3422 3216 3607
 
 #### Remove the first 6 columns as they're info only, not measures
-trainData <- trainData[,-c(1:6)]
-testData <- testData[,-c(1:6)]
-dim(trainData)
+<!-- -->
+    trainData <- trainData[,-c(1:6)]
+    testData <- testData[,-c(1:6)]
+    
+    dim(trainData)
+    [1] 19622   154
 
 #### Filter the data further to take only the rows without NAs
-trainData <- trainData[,colSums(is.na(trainData)) == 0]
-testData <- testData[,colSums(is.na(testData)) == 0]
+<!-- -->
+    trainData <- trainData[,colSums(is.na(trainData)) == 0]
+    testData <- testData[,colSums(is.na(testData)) == 0]
 
 ## Partition and train the training dataset
 
 #### Load the caret package and partition the data 70/30 between training and cross validation
-library(caret)
-set.seed(123)
-inTrain <- createDataPartition(y = trainData$classe, p = 0.7, list = FALSE)
-training <- trainData[inTrain,]
-crossval <- trainData[-inTrain,]
-dim(training)
-dim(crossval)
+<!-- -->
+    library(caret)
+    set.seed(123)
+    inTrain <- createDataPartition(y = trainData$classe, p = 0.7, list = FALSE)
+    training <- trainData[inTrain,]
+    crossval <- trainData[-inTrain,]
+    
+    dim(training)
+    [1] 13737    54
+    
+    dim(crossval)
+    [1] 5885   54
 
 #### Train two models on the training data, using the rpart and random forest methods
-library(rpart)
-library(randomForest)
-partModel <- train(classe ~ ., method="rpart", data=training, trControl = trainControl(method="cv")) 
-rfModel <- randomForest(classe ~ ., data=training, trControl = trainControl(method="cv"), ntree=100)
+<!-- -->
+    library(rpart)
+    library(randomForest)
+    partModel <- train(classe ~ ., method="rpart", data=training, trControl = trainControl(method="cv")) 
+    rfModel <- randomForest(classe ~ ., data=training, trControl = trainControl(method="cv"), ntree=100)
 
 ## Run predictions on the cross validation dataset
 
 #### Predict the outcome for each model using the cross-validation data
-predPartModel <- predict(partModel, newdata=crossval)
-predRfModel <- predict(rfModel, newdata=crossval)
+<!-- -->
+    predPartModel <- predict(partModel, newdata=crossval)
+    predRfModel <- predict(rfModel, newdata=crossval)
 
 #### Determine the accuracy of each using confusion matrixes, and calculate the out-of-sample error
-confMatrixPartModel <- confusionMatrix(predPartModel, crossval$classe)
-print(confMatrixPartModel)
+<!-- -->
+    confMatrixPartModel <- confusionMatrix(predPartModel, crossval$classe)
+    print(confMatrixPartModel)
+    
+    Confusion Matrix and Statistics
 
-confMatrixRfModel <- confusionMatrix(predRfModel, crossval$classe)
-print(confMatrixRfModel)
+          Reference
+    Prediction    A    B    C    D    E
+             A 1450  239  114  221   63
+             B  116  616  104  241  206
+             C  101  284  808  458  165
+             D    0    0    0    0    0
+             E    7    0    0   44  648
+
+    Overall Statistics
+                                         
+                   Accuracy : 0.5985         
+                     95% CI : (0.5858, 0.611)
+        No Information Rate : 0.2845         
+        P-Value [Acc > NIR] : < 2.2e-16      
+                                         
+                      Kappa : 0.4861         
+    Mcnemar's Test P-Value : < 2.2e-16      
+
+    Statistics by Class:
+
+                         Class: A Class: B Class: C Class: D Class: E
+    Sensitivity            0.8662   0.5408   0.7875   0.0000   0.5989
+    Specificity            0.8487   0.8595   0.7925   1.0000   0.9894
+    Pos Pred Value         0.6948   0.4801   0.4449      NaN   0.9270
+    Neg Pred Value         0.9410   0.8864   0.9464   0.8362   0.9163
+    Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+    Detection Rate         0.2464   0.1047   0.1373   0.0000   0.1101
+    Detection Prevalence   0.3546   0.2180   0.3086   0.0000   0.1188
+    Balanced Accuracy      0.8575   0.7001   0.7900   0.5000   0.7941
+
+    confMatrixRfModel <- confusionMatrix(predRfModel, crossval$classe)
+    print(confMatrixRfModel)
+
+    Confusion Matrix and Statistics
+
+              Reference
+    Prediction    A    B    C    D    E
+             A 1674    1    0    0    0
+             B    0 1138    7    0    0
+             C    0    0 1019    8    0
+             D    0    0    0  955    0
+             E    0    0    0    1 1082
+
+    Overall Statistics
+                                          
+                   Accuracy : 0.9971          
+                     95% CI : (0.9954, 0.9983)
+        No Information Rate : 0.2845          
+        P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                      Kappa : 0.9963          
+    Mcnemar's Test P-Value : NA              
+
+    Statistics by Class:
+
+                         Class: A Class: B Class: C Class: D Class: E
+    Sensitivity            1.0000   0.9991   0.9932   0.9907   1.0000
+    Specificity            0.9998   0.9985   0.9984   1.0000   0.9998
+    Pos Pred Value         0.9994   0.9939   0.9922   1.0000   0.9991
+    Neg Pred Value         1.0000   0.9998   0.9986   0.9982   1.0000
+    Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+    Detection Rate         0.2845   0.1934   0.1732   0.1623   0.1839
+    Detection Prevalence   0.2846   0.1946   0.1745   0.1623   0.1840
+    Balanced Accuracy      0.9999   0.9988   0.9958   0.9953   0.9999
 
 #### Run the tests agianst the test dataset
-predTestData <- predict(rfModel, newdata=testData)
+<!-- -->
+    predTestData <- predict(rfModel, newdata=testData)
 
 
 
