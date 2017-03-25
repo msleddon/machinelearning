@@ -18,6 +18,7 @@ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
 Once downloaded, read the data from the csv files into data frames, ensuring invalid or blank fields are conveted to NA
 <!-- -->
+
     trainData <- read.csv("pml-training.csv", na.strings = c("NA", "#DIV/0!", ""))
     testData <- read.csv("pml-testing.csv", na.strings = c("NA", "#DIV/0!", ""))
 
@@ -28,17 +29,20 @@ Once downloaded, read the data from the csv files into data frames, ensuring inv
 
 Take a look at the names and structure of the data frames to get a feel for the data
 <!-- -->
+
     names(trainData)
     str(trainData)
 
 Check the distinct values for the "classe" column
 <!-- -->
+
     table(trainData$classe)
        A    B    C    D    E 
     5580 3797 3422 3216 3607
 
 Remove the first 6 columns as they're info only, not measures that can be used for modelling
 <!-- -->
+
     trainData <- trainData[,-c(1:6)]
     testData <- testData[,-c(1:6)]
     
@@ -49,11 +53,13 @@ Remove the first 6 columns as they're info only, not measures that can be used f
 
 Filter the data further to take only the rows without NAs
 <!-- -->
+
     trainData <- trainData[,colSums(is.na(trainData)) == 0]
     testData <- testData[,colSums(is.na(testData)) == 0]
 
 Note this removes 100 columns from each dataset, and the resulting data is clean and usable
 <!-- -->
+
     dim(trainData)
     [1] 19622   54
     dim(testData)
@@ -65,6 +71,7 @@ Note this removes 100 columns from each dataset, and the resulting data is clean
 
 Load the caret package and partition the training data 70/30 between training and cross validation
 <!-- -->
+
     library(caret)
     set.seed(123)
     inTrain <- createDataPartition(y = trainData$classe, p = 0.7, list = FALSE)
@@ -78,6 +85,7 @@ Load the caret package and partition the training data 70/30 between training an
 
 Train two models on the training data, using the CART (rpart) and Random Forest methods
 <!-- -->
+
     library(rpart)
     library(randomForest)
     partModel <- train(classe ~ ., method="rpart", data=training, trControl = trainControl(method="cv")) 
@@ -87,11 +95,13 @@ Train two models on the training data, using the CART (rpart) and Random Forest 
 
 Predict the outcome for each model using the cross-validation data
 <!-- -->
+
     predPartModel <- predict(partModel, newdata=crossval)
     predRfModel <- predict(rfModel, newdata=crossval)
 
 Determine the accuracy of each using confusion matrixes, and calculate the out-of-sample error
 <!-- -->
+
     confMatrixPartModel <- confusionMatrix(predPartModel, crossval$classe)
     print(confMatrixPartModel)
     
@@ -129,10 +139,12 @@ Determine the accuracy of each using confusion matrixes, and calculate the out-o
     Balanced Accuracy      0.8575   0.7001   0.7900   0.5000   0.7941
 
 <!-- -->
+
     confMatrixRfModel <- confusionMatrix(predRfModel, crossval$classe)59.
     print(confMatrixRfModel)
 
 <!-- -->
+
     Confusion Matrix and Statistics
 
               Reference
@@ -169,6 +181,7 @@ Note the Random Forest model gives a much more accurate fit with an out-of-sampl
 
 ### Run the tests against the test dataset
 <!-- -->
+
     predTestData <- predict(rfModel, newdata=testData)
 
 
