@@ -139,35 +139,67 @@ $(document).ready(function () {
 </div>
 <div id="load-and-clean-the-data" class="section level3">
 <h3>Load and Clean the Data</h3>
-<p>Once downloaded, read the data from the csv files into data frames, ensuring invalid or blank fields are conveted to NA <!-- --> trainData &lt;- read.csv(“pml-training.csv”, na.strings = c(“NA”, “#DIV/0!”, “”)) testData &lt;- read.csv(“pml-testing.csv”, na.strings = c(“NA”, “#DIV/0!”, “”))</p>
-<pre><code>dim(trainData)
+<p>Once downloaded, read the data from the csv files into data frames, ensuring invalid or blank fields are conveted to NA <!-- --></p>
+<pre><code>trainData &lt;- read.csv(&quot;pml-training.csv&quot;, na.strings = c(&quot;NA&quot;, &quot;#DIV/0!&quot;, &quot;&quot;))
+testData &lt;- read.csv(&quot;pml-testing.csv&quot;, na.strings = c(&quot;NA&quot;, &quot;#DIV/0!&quot;, &quot;&quot;))
+
+dim(trainData)
 [1] 19622   160
 dim(testData)
 [1]  20  160</code></pre>
-<p>Take a look at the names and structure of the data frames to get a feel for the data <!-- --> names(trainData) str(trainData)</p>
-<p>Check the distinct values for the “classe” column <!-- --> table(trainData$classe) A B C D E 5580 3797 3422 3216 3607</p>
-<p>Remove the first 6 columns as they’re info only, not measures that can be used for modelling <!-- --> trainData &lt;- trainData[,-c(1:6)] testData &lt;- testData[,-c(1:6)]</p>
-<pre><code>dim(trainData)
+<p>Take a look at the names and structure of the data frames to get a feel for the data <!-- --></p>
+<pre><code>names(trainData)
+str(trainData)</code></pre>
+<p>Check the distinct values for the “classe” column <!-- --></p>
+<pre><code>table(trainData$classe)
+   A    B    C    D    E 
+5580 3797 3422 3216 3607</code></pre>
+<p>Remove the first 6 columns as they’re info only, not measures that can be used for modelling <!-- --></p>
+<pre><code>trainData &lt;- trainData[,-c(1:6)]
+testData &lt;- testData[,-c(1:6)]
+
+dim(trainData)
 [1] 19622   154
 dim(testData)
 [1]  20  154</code></pre>
-<p>Filter the data further to take only the rows without NAs <!-- --> trainData &lt;- trainData[,colSums(is.na(trainData)) == 0] testData &lt;- testData[,colSums(is.na(testData)) == 0]</p>
-<p>Note this removes 100 columns from each dataset, and the resulting data is clean and usable <!-- --> dim(trainData) [1] 19622 54 dim(testData) [1] 20 54</p>
-<pre><code>str(trainData)</code></pre>
+<p>Filter the data further to take only the rows without NAs <!-- --></p>
+<pre><code>trainData &lt;- trainData[,colSums(is.na(trainData)) == 0]
+testData &lt;- testData[,colSums(is.na(testData)) == 0]</code></pre>
+<p>Note this removes 100 columns from each dataset, and the resulting data is clean and usable <!-- --></p>
+<pre><code>dim(trainData)
+[1] 19622   54
+dim(testData)
+[1]  20  54
+
+str(trainData)</code></pre>
 </div>
 <div id="partition-and-build-models-with-the-training-dataset" class="section level3">
 <h3>Partition and build models with the training dataset</h3>
-<p>Load the caret package and partition the training data 70/30 between training and cross validation <!-- --> library(caret) set.seed(123) inTrain &lt;- createDataPartition(y = trainData$classe, p = 0.7, list = FALSE) training &lt;- trainData[inTrain,] crossval &lt;- trainData[-inTrain,]</p>
-<pre><code>dim(training)
+<p>Load the caret package and partition the training data 70/30 between training and cross validation <!-- --></p>
+<pre><code>library(caret)
+set.seed(123)
+inTrain &lt;- createDataPartition(y = trainData$classe, p = 0.7, list = FALSE)
+training &lt;- trainData[inTrain,]
+crossval &lt;- trainData[-inTrain,]
+
+dim(training)
 [1] 13737    54
 dim(crossval)
 [1] 5885   54</code></pre>
-<p>Train two models on the training data, using the CART (rpart) and Random Forest methods <!-- --> library(rpart) library(randomForest) partModel &lt;- train(classe ~ ., method=“rpart”, data=training, trControl = trainControl(method=“cv”)) rfModel &lt;- randomForest(classe ~ ., data=training, trControl = trainControl(method=“cv”), ntree=100)</p>
+<p>Train two models on the training data, using the CART (rpart) and Random Forest methods <!-- --></p>
+<pre><code>library(rpart)
+library(randomForest)
+partModel &lt;- train(classe ~ ., method=&quot;rpart&quot;, data=training, trControl = trainControl(method=&quot;cv&quot;)) 
+rfModel &lt;- randomForest(classe ~ ., data=training, trControl = trainControl(method=&quot;cv&quot;), ntree=100)</code></pre>
 </div>
 <div id="run-predictions-on-the-cross-validation-dataset" class="section level3">
 <h3>Run predictions on the cross validation dataset</h3>
-<p>Predict the outcome for each model using the cross-validation data <!-- --> predPartModel &lt;- predict(partModel, newdata=crossval) predRfModel &lt;- predict(rfModel, newdata=crossval)</p>
-<p>Determine the accuracy of each using confusion matrixes, and calculate the out-of-sample error <!-- --> confMatrixPartModel &lt;- confusionMatrix(predPartModel, crossval$classe) print(confMatrixPartModel)</p>
+<p>Predict the outcome for each model using the cross-validation data <!-- --></p>
+<pre><code>predPartModel &lt;- predict(partModel, newdata=crossval)
+predRfModel &lt;- predict(rfModel, newdata=crossval)</code></pre>
+<p>Determine the accuracy of each using confusion matrixes, and calculate the out-of-sample error <!-- --></p>
+<pre><code>confMatrixPartModel &lt;- confusionMatrix(predPartModel, crossval$classe)
+print(confMatrixPartModel)</code></pre>
 <!-- -->
 <pre><code>Confusion Matrix and Statistics
 
@@ -201,7 +233,7 @@ Detection Rate         0.2464   0.1047   0.1373   0.0000   0.1101
 Detection Prevalence   0.3546   0.2180   0.3086   0.0000   0.1188
 Balanced Accuracy      0.8575   0.7001   0.7900   0.5000   0.7941</code></pre>
 <!-- -->
-<pre><code>confMatrixRfModel &lt;- confusionMatrix(predRfModel, crossval$classe)59.
+<pre><code>confMatrixRfModel &lt;- confusionMatrix(predRfModel, crossval$classe)
 print(confMatrixRfModel)</code></pre>
 <!-- -->
 <pre><code>Confusion Matrix and Statistics
@@ -236,6 +268,15 @@ Detection Rate         0.2845   0.1934   0.1732   0.1623   0.1839
 Detection Prevalence   0.2846   0.1946   0.1745   0.1623   0.1840
 Balanced Accuracy      0.9999   0.9988   0.9958   0.9953   0.9999</code></pre>
 <p>Note the Random Forest model gives a much more accurate fit with an out-of-sample error just 0.29% (100% - 99.71% accuracy), while for the CART method the out-of-sample error is 40.15% (100% - 59.85%).</p>
+</div>
+<div id="run-the-random-forests-model-against-the-20-test-cases" class="section level3">
+<h3>Run the Random Forests model against the 20 test cases</h3>
+<!-- -->
+<pre><code>predTestData &lt;- predict(rfModel, newdata=testData)
+print(predTestData)</code></pre>
+<!-- -->
+<pre><code>1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B</code></pre>
 </div>
 </div>
 
