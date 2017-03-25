@@ -140,7 +140,7 @@ Determine the accuracy of each using confusion matrixes, and calculate the out-o
 
 <!-- -->
 
-    confMatrixRfModel <- confusionMatrix(predRfModel, crossval$classe)59.
+    confMatrixRfModel <- confusionMatrix(predRfModel, crossval$classe)
     print(confMatrixRfModel)
 
 <!-- -->
@@ -179,13 +179,13 @@ Determine the accuracy of each using confusion matrixes, and calculate the out-o
 
 Note the Random Forest model gives a much more accurate fit with an out-of-sample error just 0.29% (100% - 99.71% accuracy), while for the CART method the out-of-sample error is 40.15% (100% - 59.85%). 
 
-### Run the tests against the test dataset
+### Run the Random Forests model against the 20 test cases
 <!-- -->
 
     predTestData <- predict(rfModel, newdata=testData)
-
-
-
-
-
-
+    print(predTestData)
+    
+<!-- -->
+ 
+    1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+    B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B
