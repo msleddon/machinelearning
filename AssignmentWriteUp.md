@@ -1,10 +1,10 @@
-# Practical Machine Learning: Assignment Write-Up
+## Practical Machine Learning: Assignment Write-Up
 
-## Introduction
+### Introduction
 
 Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
 
-## Data Sources
+### Data Sources
 
 The training data for this project are available here:
 
@@ -14,7 +14,7 @@ The test data are available here:
 
 https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
-## Load and Clean the Data
+### Load and Clean the Data
 
 Once downloaded, read the data from the csv files into data frames, ensuring invalid or blank fields are conveted to NA
 <!-- -->
@@ -61,7 +61,7 @@ Note this removes 100 columns from each dataset, and the resulting data is clean
     
     str(trainData)
 
-## Partition and build models with the training dataset
+### Partition and build models with the training dataset
 
 Load the caret package and partition the training data 70/30 between training and cross validation
 <!-- -->
@@ -83,7 +83,7 @@ Train two models on the training data, using the CART (rpart) and Random Forest 
     partModel <- train(classe ~ ., method="rpart", data=training, trControl = trainControl(method="cv")) 
     rfModel <- randomForest(classe ~ ., data=training, trControl = trainControl(method="cv"), ntree=100)
 
-## Run predictions on the cross validation dataset
+### Run predictions on the cross validation dataset
 
 Predict the outcome for each model using the cross-validation data
 <!-- -->
@@ -167,7 +167,7 @@ Determine the accuracy of each using confusion matrixes, and calculate the out-o
 
 Note the Random Forest model gives a much more accurate fit with an out-of-sample error just 0.29% (100% - 99.71% accuracy), while for the CART method the out-of-sample error is 40.15% (100% - 59.85%). 
 
-## Run the tests against the test dataset
+### Run the tests against the test dataset
 <!-- -->
     predTestData <- predict(rfModel, newdata=testData)
 
