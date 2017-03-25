@@ -16,38 +16,54 @@ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
 ### Load and Clean the Data
 
-#### read the data from the downloaded csv files into data frames, ensuring invalid or blank fields are conveted to NA
+Once downloaded, read the data from the csv files into data frames, ensuring invalid or blank fields are conveted to NA
 <!-- -->
     trainData <- read.csv("pml-training.csv", na.strings = c("NA", "#DIV/0!", ""))
     testData <- read.csv("pml-testing.csv", na.strings = c("NA", "#DIV/0!", ""))
 
-#### Ascertain the column names and structure of the data
+    dim(trainData)
+    [1] 19622   160
+    dim(testData)
+    [1]  20  160
+
+Take a look at the names and structure of the data frames to get a feel for the data
 <!-- -->
     names(trainData)
     str(trainData)
 
-#### check distinct values for the "classe" column
+Check the distinct values for the "classe" column
 <!-- -->
     table(trainData$classe)
        A    B    C    D    E 
     5580 3797 3422 3216 3607
 
-#### Remove the first 6 columns as they're info only, not measures
+Remove the first 6 columns as they're info only, not measures that can be used for modelling
 <!-- -->
     trainData <- trainData[,-c(1:6)]
     testData <- testData[,-c(1:6)]
     
     dim(trainData)
     [1] 19622   154
+    dim(testData)
+    [1]  20  154
 
-#### Filter the data further to take only the rows without NAs
+Filter the data further to take only the rows without NAs
 <!-- -->
     trainData <- trainData[,colSums(is.na(trainData)) == 0]
     testData <- testData[,colSums(is.na(testData)) == 0]
 
-## Partition and train the training dataset
+Note this removes 100 columns from each dataset, and the resulting data is clean and usable
+<!-- -->
+    dim(trainData)
+    [1] 19622   54
+    dim(testData)
+    [1]  20  54
+    
+    str(trainData)
 
-#### Load the caret package and partition the data 70/30 between training and cross validation
+## Partition and build models with the training dataset
+
+Load the caret package and partition the training data 70/30 between training and cross validation
 <!-- -->
     library(caret)
     set.seed(123)
@@ -57,11 +73,10 @@ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
     
     dim(training)
     [1] 13737    54
-    
     dim(crossval)
     [1] 5885   54
 
-#### Train two models on the training data, using the rpart and random forest methods
+Train two models on the training data, using the CART (rpart) and Random Forest methods
 <!-- -->
     library(rpart)
     library(randomForest)
@@ -70,16 +85,17 @@ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
 ## Run predictions on the cross validation dataset
 
-#### Predict the outcome for each model using the cross-validation data
+Predict the outcome for each model using the cross-validation data
 <!-- -->
     predPartModel <- predict(partModel, newdata=crossval)
     predRfModel <- predict(rfModel, newdata=crossval)
 
-#### Determine the accuracy of each using confusion matrixes, and calculate the out-of-sample error
+Determine the accuracy of each using confusion matrixes, and calculate the out-of-sample error
 <!-- -->
     confMatrixPartModel <- confusionMatrix(predPartModel, crossval$classe)
     print(confMatrixPartModel)
     
+<!-- -->
     Confusion Matrix and Statistics
 
           Reference
@@ -112,9 +128,11 @@ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
     Detection Prevalence   0.3546   0.2180   0.3086   0.0000   0.1188
     Balanced Accuracy      0.8575   0.7001   0.7900   0.5000   0.7941
 
-    confMatrixRfModel <- confusionMatrix(predRfModel, crossval$classe)
+<!-- -->
+    confMatrixRfModel <- confusionMatrix(predRfModel, crossval$classe)59.
     print(confMatrixRfModel)
 
+<!-- -->
     Confusion Matrix and Statistics
 
               Reference
@@ -147,7 +165,9 @@ https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
     Detection Prevalence   0.2846   0.1946   0.1745   0.1623   0.1840
     Balanced Accuracy      0.9999   0.9988   0.9958   0.9953   0.9999
 
-#### Run the tests agianst the test dataset
+Note the Random Forest model gives a much more accurate fit with an out-of-sample error just 0.29% (100% - 99.71% accuracy), while for the CART method the out-of-sample error is 40.15% (100% - 59.85%). 
+
+## Run the tests against the test dataset
 <!-- -->
     predTestData <- predict(rfModel, newdata=testData)
 
